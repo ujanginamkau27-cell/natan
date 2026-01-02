@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NATANBOT - HITUNG WR</title>
+    <style>
+        :root {
+            --neon-blue: #00d4ff;
+            --neon-green: #00ff88;
+            --dark-bg: #0a0b10;
+        }
+
+        body {
+            background: var(--dark-bg);
+            background-image: radial-gradient(circle at center, #16213e, #0a0b10);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .calc-card, .history-card {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            margin-top: 0;
+        }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 5px; }
+        input {
+            width: 100%; padding: 12px; box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px; color: white; outline: none;
+        }
+
+        button {
+            width: 100%; padding: 12px; background: var(--neon-blue);
+            border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+
+        /* History Items */
+        .history-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid var(--neon-blue);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .history-item h3 { margin: 0 0 10px 0; font-size: 1rem; color: var(--neon-green); }
+        .stats { font-size: 0.85rem; color: #ccc; margin-bottom: 10px; }
+        
+        .progress-area {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .remaining-count { font-size: 1.2rem; font-weight: bold; color: var(--neon-blue); }
+
+        .btn-plus {
+            background: var(--neon-green);
+            color: black;
+            width: auto;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+        }
+
+        .btn-del {
+            background: #ff4d4d;
+            margin-top: 10px;
+            font-size: 0.7rem;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calc-card">
+    <h1>HITUNG WR by.natan</h1>
+    <div class="input-group">
+        <label>Nama Label (Misal: Hero Ling / Akun Utama)</label>
+        <input type="text" id="label" placeholder="Contoh: Menuju 60% Akun Utama">
+    </div>
+    <div class="input-group">
+        <label>Total Match</label>
+        <input type="number" id="tMatch" placeholder="500">
+    </div>
+    <div class="input-group">
+        <label>Winrate Saat Ini (%)</label>
+        <input type="number" id="tWr" placeholder="52" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>Target Winrate (%)</label>
+        <input type="number" id="targetWr" placeholder="60" step="0.1">
+    </div>
+    <button onclick="calculateAndSave()">HITUNG & SIMPAN HISTORY</button>
+</div>
+
+<div class="history-card">
+    <h2>HISTORY PROGRESS</h2>
+    <div id="historyList">
+        </div>
+</div>
+
+<script>
+    let historyData = JSON.parse(localStorage.getItem('wrHistory')) || [];
+
+    function calculateAndSave() {
+        const label = document.getElementById('label').value || "Unnamed Target";
+        const tMatch = parseFloat(document.getElementById('tMatch').value);
+        const tWr = parseFloat(document.getElementById('tWr').value);
+        const targetWr = parseFloat(document.getElementById('targetWr').value);
+
+        if (!tMatch || !tWr || !targetWr) return alert("Lengkapi data!");
+        if (targetWr <= tWr) return alert("Target harus lebih tinggi!");
+
+        const tWin = (tMatch * tWr) / 100;
+        const needed = Math.ceil((tMatch * targetWr - 100 * tWin) / (100 - targetWr));
+
+        const newEntry = {
+            id: Date.now(),
+            label: label,
+            originalMatch: tMatch,
+            originalWr: tWr,
+            targetWr: targetWr,
+            totalNeeded: needed,
+            currentWin: 0
+        };
+
+        historyData.unshift(newEntry);
+        saveAndRender();
+        
+        // Clear inputs
+        document.getElementById('label').value = '';
+    }
+
+    function addWin(id) {
+        const item = historyData.find(h => h.id === id);
+        if (item && item.currentWin < item.totalNeeded) {
+            item.currentWin += 1;
+            saveAndRender();
+        }
+    }
+
+    function deleteHistory(id) {
+        if (confirm("Hapus history ini?")) {
+            historyData = historyData.filter(h => h.id !== id);
+            saveAndRender();
+        }
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('wrHistory', JSON.stringify(historyData));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const list = document.getElementById('historyList');
+        list.innerHTML = historyData.length === 0 ? '<p style="text-align:center; color:#666;">Belum ada history</p>' : '';
+
+        historyData.forEach(item => {
+            const remaining = item.totalNeeded - item.currentWin;
+            const isDone = remaining <= 0;
+
+            list.innerHTML += `
+                <div class="history-item" style="${isDone ? 'border-left-color: var(--neon-green)' : ''}">
+                    <h3>${item.label}</h3>
+                    <div class="stats">
+                        Target: ${item.targetWr}% | Awal: ${item.originalWr}% (${item.originalMatch} Match)
+                    </div>
+                    <div class="progress-area">
+                        <div>
+                            <span style="font-size:0.7rem; display:block; color:#888;">WIN YANG DIBUTUHKAN:</span>
+                            <span class="remaining-count">${isDone ? 'TARGET DICAPAI! 🎉' : remaining}</span>
+                        </div>
+                        ${!isDone ? `<button class="btn-plus" onclick="addWin(${item.id})">WIN +1</button>` : ''}
+                    </div>
+                    <button class="btn-del" onclick="deleteHistory(${item.id})">Hapus Permanen</button>
+                </div>
+            `;
+        });
+    }
+
+    renderHistory();
+</script>
+
+</body>
+</html>

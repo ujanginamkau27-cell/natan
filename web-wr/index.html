@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAOWKYS AUTH</title>
+    <link rel="stylesheet" href="style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+
+    <div class="loader-wrapper" id="loader">
+        <div class="loader"></div>
+        <p>Sedang memproses...</p>
+    </div>
+
+    <div id="forgotModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Pulihkan Sandi</h2>
+            <div class="input-box modal-input">
+                <input type="email" id="recoveryEmail" placeholder="Masukkan Email Terdaftar">
+            </div>
+            <button type="button" class="btn" onclick="recoverPassword()">Cek Sandi</button>
+            <p id="recoveryMessage"></p>
+        </div>
+    </div>
+
+    <div class="container">
+        <form id="authForm">
+            <h1 id="formTitle">Login</h1>
+
+            <div class="input-box" id="emailGroup" style="display: none;">
+                <input type="email" id="email" placeholder="Email">
+                <i class='bx bx-envelope'></i>
+            </div>
+
+            <div class="input-box">
+                <input type="text" id="username" placeholder="Username" required>
+                <i class='bx bx-user'></i>
+            </div>
+
+            <div class="input-box">
+                <input type="password" id="password" placeholder="Password" required>
+                <i class='bx bx-hide' id="togglePassword" style="cursor: pointer;"></i>
+            </div>>
+
+            <div class="remember-forget" id="rememberGroup">
+                <label><input type="checkbox"> Ingat saya</label>
+                <a href="#" onclick="openForgotModal(event)">Lupa sandi?</a>
+            </div>
+
+            <button type="submit" class="btn" id="mainBtn">Login</button>
+
+            <div class="separator"><span>atau lanjut dengan</span></div>
+
+            <div class="fake-options">
+                <div class="fake-btn"><i class='bx bx-mail-send'></i> Daftar melalui Email</div>
+            </div>
+
+            <div class="social-login">
+                <div class="social-icon google"><i class='bx bxl-google'></i></div>
+                <div class="social-icon facebook"><i class='bx bxl-facebook-circle'></i></div>
+                <div class="social-icon tiktok"><i class='bx bxl-tiktok'></i></div>
+            </div>
+
+            <div class="register-link">
+                <p id="toggleText">Gapunya akun? <a href="#" onclick="toggleMode()">Daftar</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
